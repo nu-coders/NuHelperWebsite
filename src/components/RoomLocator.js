@@ -41,10 +41,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
 import logo from '../assets/images/logo.png';
-import { query, collection, getDocs, where } from "firebase/firestore";
-import { auth, db, logout } from "../firestore/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useNavigate } from "react-router-dom";
+
 import Switch from '@mui/material/Switch';
 
 const mdTheme = createTheme();
@@ -90,32 +87,10 @@ function DashboardContent() {
       sectionValueNew[addedCourses.indexOf(course)] = event.target.value;
       setSections(sectionValueNew);
     };
-    const [user, loading, error] = useAuthState(auth);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [userUid, setUserUid] = useState("");
-    const navigate = useNavigate();
-    const fetchUserName = async () => {
-      try {
-        const q = query(collection(db, "users"), where("uid", "==", user?.uid));
-        const doc = await getDocs(q);
-        const data = doc.docs[0].data();
-        setName(data.name);
-        setEmail(data.email);
-        setUserUid(user.uid);
-      } catch (err) {
-        console.error(err);
-        alert("An error occured while fetching user data");
-      }
-    };
-    useEffect(() => {
-      if (loading) return;
-      if (!user) return navigate("/");
-      fetchUserName();
-    }, [user, loading]);
+    
     
     const [loading2, setLoading] = useState(false);
-
+    const [emptyRooms, setEmptyRooms] = useState([]);
     const [data, setData] = useState([]);
     useEffect(() => {
         const fetchData = async () => {
@@ -128,7 +103,7 @@ function DashboardContent() {
               console.log('data from cache');
             } else {
               response = await axios.get(
-                '//localhost:8081/api/suglist',
+                'https://test.nucoders.dev:8095/api/beta/suglisttm',
               );
               localStorage.setItem('courses', JSON.stringify(response.data));
               console.log('data from server' + response.data);
@@ -141,35 +116,60 @@ function DashboardContent() {
           }
           
         };
+        
+        // const fetchEmptyRooms = async () => {
+        //   setLoading(true);
+        //   try{
+        //     let response;
+        //     const cachedData = localStorage.getItem('emptyRooms');
+        //     if(cachedData) {
+        //       response = {data: JSON.parse(cachedData)};
+        //       console.log('data from cache');
+        //     } else {
+        //       response = await axios.get(
+        //         '//localhost:8091/api/beta/getrooms/?day=0',
+        //       );
+        //       localStorage.setItem('emptyRooms', JSON.stringify(response.data));
+        //       console.log('data from server' + response.data);
+        //     }
+        //     setEmptyRooms(response.data);
+        //   } catch{
+        //     console.log('error');
+        //   }finally{
+        //     setLoading(false);
+        //   }
+
+        // };
+        // fetchEmptyRooms();
         fetchData();
     }, []);
 
     const [rooms, setRooms] = useState([]);
     useEffect(() => {
-        const fetchData = async () => {
-          setLoading(true);
-          try{
-            let response;
-            const cachedData = localStorage.getItem('roomNames');
-            if(cachedData) {
-              response = {data: JSON.parse(cachedData)};
-              console.log('data from cache');
-            } else {
-              response = await axios.get(
-                '//localhost:8081/api/getRooms/?building=3',
-              );
-              localStorage.setItem('roomNames', JSON.stringify(response.data));
-              console.log('data from server' + response.data);
-            }
-            setRooms(response.data);
-          } catch{
-            console.log('error');
-          }finally{
-            setLoading(false);
+      const fetchEmptyRooms = async () => {
+        setLoading(true);
+        try{
+          let response;
+          const cachedData = null;
+          if(cachedData) {
+            response = {data: JSON.parse(cachedData)};
+            console.log('data from cache');
+          } else {
+            response = await axios.get(
+              'https://test.nucoders.dev:8095/api/beta/getrooms/',
+            );
+            localStorage.setItem('emptyRooms', JSON.stringify(response.data));
+            console.log('data from server' + response.data);
           }
-          
-        };
-        fetchData();
+          setEmptyRooms(response.data);
+        } catch{
+          console.log('error');
+        }finally{
+          setLoading(false);
+        }
+
+      };
+      fetchEmptyRooms();
     }, []);
 
 
@@ -202,17 +202,18 @@ function DashboardContent() {
    const [tables, setTables]= React.useState([]);
    const [useFilters, setUseFilters] = React.useState(false);
    const [filters, setFilters] = React.useState({});
-
-
+   const [noSelectedRoom, setNoSelectedRoom] = React.useState(true);
+   const [currRoomTable, setCurrRoomTable] = React.useState([]);
    const getRoom = async () => {
     console.log("in get room");
     
     try{
         console.log("selected course is "+selectedCourse);
         let response;
-      response =  await axios.get(`//localhost:8081/getRoom/?id=${selectedCourse}`);
+      response =  await axios.get(`https://test.nucoders.dev:8095/api/beta/getroom/?id=${selectedCourse.split("-")[1].trim()}`);
       console.log('data from server' + response.data);
-      setTables(response.data);
+      setCurrRoomTable(response.data);
+      setNoSelectedRoom(false);
     } catch{
       console.log('error');
     }finally{
@@ -222,24 +223,7 @@ function DashboardContent() {
     
   };
   
-  const saveTableToUser = async (table) => {
-    setLoading(true);
-    try {
-      let response;
-      response = await axios.post('//localhost:8080/saveTable', {
-        userId : userUid,
-        userEmail : email,
-        table: table,
-      });
-      console.log('data from server' + response);
-      window.alert('Table saved successfully');
-      navigate('/home');
-    } catch(err) {
-      console.log('error'+err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const [state, setState] = React.useState({
     sunday: true,
@@ -250,6 +234,7 @@ function DashboardContent() {
     friday: false,
     saturday: false,
   });
+
   const handleChangeCheckbox = (event) => {
     console.log(event.target.name + ' ' + event.target.checked)
     setState({ ...state, [event.target.name]: event.target.checked });
@@ -265,6 +250,199 @@ function DashboardContent() {
    useEffect(() => {
  
   },[rooms])
+
+  const details = (room) => {
+    console.log(room.type);
+    if(room.status === false){
+      return (
+        <Paper>
+            
+        <Typography variant="h6"  align="center"> {room['course']}</Typography>
+        <Typography variant="h6"  align="center"> {room['type']}</Typography>
+        <Typography variant="h6"  align="center"> {room['section']}</Typography>
+        {/* <Typography variant="h6"  align="center"> {room[day.toString()][i.toString()]['status']}</Typography> */}
+      </Paper>
+      );
+    }else {
+      return (
+        <Paper>
+            
+        <Typography variant="h6"  align="center"> Vacant</Typography>
+      </Paper>
+      );
+    }
+  }
+
+  const ChildComponent = ({ room }) => {
+    let date = new Date();
+    let day = date.getDay();
+    console.log(day)
+    let today = room[day.toString()];
+    return(
+      <Paper>
+        <Typography variant="h6"  align="center"> {room['1']}</Typography>
+      </Paper>
+    )
+  };
+
+
+const parseResult = (table) => {
+  let result = {};
+  let slots = {
+    '0' : '8:30',
+    '1' : '9:00',
+    '2' : '9:30',
+    '3' : '10:00',
+    '4' : '10:30',
+    '5' : '11:00',
+    '6' : '11:30',
+    '7' : '12:00',
+    '8' : '12:30',
+    '9' : '1:00',
+    '10' : '1:30',
+    '11' : '2:00',
+    '12' : '2:30',
+    '13' : '3:00',
+    '14' : '3:30',
+    '15' : '4:00',
+    '16' : '4:30',
+    '17' : '5:00',
+    '18' : '5:30',
+    '19' : '6:00',
+    '20' : '6:30',
+    '21' : '7:00',
+    '22' : '7:30',
+    '23' : '8:00',
+    '24' : '8:30',
+    '25' : '9:00',
+  }
+  Object.keys(table).map((key) => {
+    let newKey = '0';
+    let nextKey = (parseInt(key)+1).toString();
+    let currSlot = table[key];
+    let nextSlot = table[nextKey];
+    console.log(key +"curr slot is "+ JSON.stringify(currSlot))
+    console.log(nextKey + "next slot is "+ JSON.stringify(nextSlot))
+    //add curr slot if the next slot is undefined
+    if(nextSlot === undefined){
+      result[key] = currSlot;
+      result[key]['startSlot'] = slots[key];
+      result[key]['endSlot'] = slots[key];
+    } else {
+    //merge 2 slots if there status is both true 
+
+      if(currSlot['status'] === true && nextSlot['status'] === true){
+        result[newKey] = currSlot;
+        result[newKey]['startSlot'] = slots[key];
+        result[newKey]['endSlot'] = slots[nextKey];
+      } 
+      //add curr slot if it is false and next slot is true
+      if(currSlot['status'] === false && nextSlot['status'] === true){
+        result[newKey] = currSlot;
+        result[newKey]['startSlot'] = slots[key];
+        result[newKey]['endSlot'] = slots[key];
+        newKey = (parseInt(newKey)+1).toString();
+      }
+      //add curr slot if it is true and next slot is false
+      if(currSlot['status'] === true && nextSlot['status'] === false){
+        result[newKey] = currSlot;
+        result[newKey]['startSlot'] = slots[key];
+        result[newKey]['endSlot'] = slots[key];
+        newKey = (parseInt(newKey)+1).toString();
+      } 
+      if(currSlot['status'] === false && nextSlot['status'] === false){
+        if(currSlot['course'] === nextSlot['course'] && currSlot['section'] === nextSlot['section'] ){
+          result[newKey] = currSlot;
+          result[newKey]['startSlot'] = slots[key];
+          result[newKey]['endSlot'] = slots[nextKey];
+        } else {
+          result[newKey] = currSlot;
+          result[newKey]['startSlot'] = slots[key];
+          result[newKey]['endSlot'] = slots[key];
+        }
+      }
+    }
+  })
+  console.log(result);
+  return result;
+
+}
+
+
+
+  const parseTable = (table) => {
+    let table2 = parseResult(table);
+    let colors = {
+      Occupied : '#FF0000',
+      Vacant : '#00FF00',
+    } 
+    
+    return (
+      <Paper>
+        {Object.keys(table2).map((key) => (
+          <Paper key ={key} sx={{ p:2, m: 2, backgroundColor: colors[table[key].status ? 'Vacant' : 'Occupied'], alignItems:'center'}} alignItems="center" justify="center">
+          <Typography variant="h6"  align="center">Status: {table[key].status ? 'Vacant' : 'Occupied'}</Typography>
+          <Typography variant="h6"  align="center">Occupied Until: {table[key]['O/V']}</Typography> 
+          {!table[key].status && (
+            <>
+              <Typography variant="h6"  align="center">Course: {table[key]['course']}</Typography>
+              <Typography variant="h6"  align="center">Section: {table[key]['section']}</Typography>
+            </>
+          )}
+        </Paper>
+        ))}
+      </Paper>
+    );
+  }
+
+  // const parseTable = (table) => {
+  //   let colors = {
+  //     Occupied : '#FF0000',
+  //     Vacant : '#00FF00',
+  //   } 
+    
+  //   let startDate = new Date();
+  //   startDate.setHours(8);
+  //   startDate.setMinutes(30);
+  //   let endDate = new Date();
+  //   endDate.setHours(16);
+  //   endDate.setMinutes(30);
+  //   let timeIntervals = [];
+  //   while(startDate < endDate) {
+  //     let startTime = startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  //     startDate.setMinutes(startDate.getMinutes() );
+  //     let endTime = startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  //     timeIntervals.push(startTime + ' - ' + endTime);
+  //   }
+    
+  //   return (
+  //     <Paper>
+  //       {Object.keys(table).map((key) => {
+  //         if(table[key].status) {
+  //           return (
+  //             <Paper key={key} sx={{ p:2, m: 2, backgroundColor: colors['Occupied'], alignItems:'center', color: '#FFFFFF' }} alignItems="center" justify="center">
+  //               <Typography variant="h6" align="center">Status: Occupied</Typography>
+  //               <Typography variant="h6" align="center">Occupied Until: {table[key]['O/V']}</Typography>
+  //               <Typography variant="h6" align="center">Course: {table[key]['course']}</Typography>
+  //               <Typography variant="h6" align="center">Type: {table[key]['type']}</Typography>
+  //               <Typography variant="h6" align="center">Section: {table[key]['section']}</Typography>
+  //               <Typography variant="h6" align="center">Start Time: {timeIntervals[key - 1]}</Typography>
+  //               <Typography variant="h6" align="center">End Time: {timeIntervals[key]}</Typography>
+  //             </Paper>
+  //           );
+  //         } else {
+  //           return (
+  //             <Paper key={key} sx={{ p:2, m: 2, backgroundColor: colors['Vacant'], alignItems:'center', color: '#FFFFFF' }} alignItems="center" justify="center">
+  //               <Typography variant="h6" align="center">Status: Vacant</Typography>
+  //               <Typography variant="h6" align="center">Occupied Until: {table[key]['O/V']}</Typography>
+  //             </Paper>
+  //           );
+  //         }
+  //       })}
+  //     </Paper>
+  //   );
+  // }
+  
   return (    
     <ThemeProvider theme={mdTheme}>
       <Box sx={{ display: 'flex' }}>
@@ -304,10 +482,10 @@ function DashboardContent() {
                     <Grid container spacing={3} >
 
                         <Grid item xs={9} md={8} lg={9} >
-                                <Autocomplete disablePortal id="combo-box-demo" options={coursesList} inputValue = {selectedCourse} onChange={(event, newValue) => { setSelectedCourse(newValue); }}  renderInput={(params) => <TextField {...params}   label="Search Courses" />} />
+                                <Autocomplete disablePortal id="combo-box-demo" options={coursesList} inputValue = {selectedCourse} onChange={(event, newValue) => { setSelectedCourse(newValue); }}  renderInput={(params) => <TextField {...params}   label="Search Rooms" />} />
                             </Grid>
                             <Grid item xs={3} md={4} lg={3}>
-                                <Button sx={{backgroundColor: `#0077b6`}} variant="contained" onClick={() => {addCourse();}} >Add</Button>
+                                <Button sx={{backgroundColor: `#0077b6`}} variant="contained" onClick={() => {getRoom();}} >Search</Button>
                             </Grid>
                     </Grid>
                 </Paper>
@@ -317,25 +495,63 @@ function DashboardContent() {
                     <Paper elevation={0} style={{minHeight: 400,maxHeight: 600, overflow: 'auto',backgroundColor: `#0077b6`}}>
 
                                 <List>
-                                {Object.keys(rooms).forEach((room, index)=>{
-                                        console.log("hi")
-                                        return(
-                                        <Paper key  ={index} sx={{ p:2, m: 2,backgroundColor: `#caf7b8`}}>
-                                          <Typography> {  " jjj" } </Typography>
-                                          {/* <Typography> Section: {course.section } </Typography>
-                                          <Typography> {course.courseType + " " + course.section} </Typography>
-                                          <Typography> {course.schedule[0].dayDesc + " " + course.schedule[0].startTime + " - " + course.schedule[0].endTime} </Typography>
-                                          <Typography> Instructor :{ course.instructors[0].fullName}</Typography> */}
-                                        </Paper>)
-                                })}
-                                  {/* {tables && tables.length === 0 && <Typography variant='h3' align="center" > No tables found </Typography>} */}
+                                
+                                  {currRoomTable && currRoomTable.map((room) => {
+                                    let colors = {
+                                      Occupied : '#FF3300',
+                                      Vacant : '#00FF00',
+                                    } 
+                                      return(
+                                        <Paper key= {room['id']} sx={{ p:2, m: 2,backgroundColor: '#0077b6', alignItems:'center'}} alignItems="center" justify="center">
+                                          <Paper sx={{ backgroundColor: '#fff', alignItems:'center'}}>
+                                            <Typography variant="h6"  align="center">Room {room['id']} </Typography>
+                                            <Typography variant="h6"  align="center"> {room['floor']}</Typography>
+                                            <Typography variant="h6"  align="center"> {room['type']}</Typography>
+                                          </Paper>
+                                          <Paper sx={{ mb:2,backgroundColor: colors[room.currentSlot.status ? 'Vacant' : 'Occupied'], alignItems:'center'}}>
+                                            {/* {parseTable(room['table'])} */}
+                                              <Typography variant="h6"  align="center">Status: {room.currentSlot.status ? 'Vacant' : 'Occupied'}</Typography>
+                                              <Typography variant="h6"  align="center">Occupied Until: {room.currentSlot['O/V']}</Typography> 
+                                              {!room.currentSlot.status && (
+                                                <>
+                                                  <Typography variant="h6"  align="center">Course: {room.currentSlot['course']}</Typography>
+                                                  <Typography variant="h6"  align="center">Section: {room.currentSlot['section']}</Typography>
+                                                </>
+                                              )}
+                                            </Paper>
+                                          </Paper>
+                                    )
+                                  })}
+                                 
+                                  {
+                                    noSelectedRoom && emptyRooms && emptyRooms.map((room) => {
+                                      
+                                      return(
+                                        <Paper key= {room['id']} sx={{ borderRadius:15,m:5,backgroundColor: '#0077b6', alignItems:'center'}} alignItems="center" justify="center">
+
+                                          <Paper sx={{ p:2,backgroundColor: '#fff', alignItems:'center',borderTopLeftRadius:15,borderTopRightRadius:15,borderBottomLeftRadius:0,borderBottomRightRadius:0}}>
+                                            <Typography variant="h6"  align="center">Room {room['id']} </Typography>
+                                            <Typography variant="h6"  align="center"> {room['floor']}</Typography>
+                                            <Typography variant="h6"  align="center"> {room['type']}</Typography>
+                                          </Paper>
+                                          <Paper sx={{p:2, mb:2,backgroundColor: '#12E615', alignItems:'center',borderTopLeftRadius:0,borderTopRightRadius:0,borderBottomLeftRadius:15,borderBottomRightRadius:15}}>
+                                            {/* {parseTable(room['table'])} */}
+                                              <Typography variant="h6"  align="center">Status: Vacant</Typography>
+                                              <Typography variant="h6"  align="center">Occupied Until: {room.currentSlot['O/V']}</Typography> 
+                                            </Paper>
+                                          </Paper>
+                                    )
+                                  })
+                                  }
+                                  
+
                                                                      
                                 </List>
                     </Paper>
                 </Paper>
               </Grid>
               {/* Recent Deposits */}
-              <Grid item  xs={12} md={4} lg={3} sx={{flexDirection:'row'}}>
+              {/* <Grid item  xs={12} md={4} lg={3} sx={{flexDirection:'row'}}>
                 <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', minHeight:350 ,backgroundColor: `#caf0f8` }}>
                   <List>
                     <Typography variant="h6"  align="center">Added Courses</Typography>
@@ -411,7 +627,7 @@ function DashboardContent() {
                 <Paper sx={{ m:1, p: 2, display: 'flex', flexDirection: 'column', backgroundColor: `#caf0f8` }}>
                   <Button sx={{backgroundColor: `#0077b6`}} variant="contained" onClick={() => {getRoom();}}  >Generate Tables</Button>
                 </Paper>
-              </Grid>              
+              </Grid>               */}
             </Grid>
             <Copyright sx={{ pt: 4 }} />
           </Container>

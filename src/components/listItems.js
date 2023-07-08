@@ -3,21 +3,30 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
-import { logout } from "../firestore/firestore";
 import LogoutIcon from '@mui/icons-material/Logout';
 import HomeIcon from '@mui/icons-material/Home';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import RoomIcon from '@mui/icons-material/Room';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import Link from '@mui/material/Link';
+import SearchIcon from '@mui/icons-material/Search';
 export const mainListItems = (
   <React.Fragment>
-    <Link href="/home" color="inherit" underline="none">
+    {/* <Link href="/home" color="inherit" underline="none">
       <ListItemButton>
         <ListItemIcon>
           <HomeIcon />
         </ListItemIcon>
         <ListItemText primary="Home" />
+      </ListItemButton>
+    </Link> */}
+
+    <Link href="/searchCourse" color="inherit" underline="none">
+      <ListItemButton>
+        <ListItemIcon>
+          <SearchIcon />
+        </ListItemIcon>
+        <ListItemText primary="Search Course" />
       </ListItemButton>
     </Link>
 
@@ -39,29 +48,29 @@ export const mainListItems = (
       </ListItemButton>
     </Link>
 
-    <Link href="/nutips" color="inherit" underline="none">
+    {/* <Link href="/nutips" color="inherit" underline="none">
       <ListItemButton>
         <ListItemIcon>
           <QuestionAnswerIcon />
         </ListItemIcon>
         <ListItemText primary="Nu Tips" />
       </ListItemButton>
-    </Link>
+    </Link> */}
   </React.Fragment>
 );
 
 export const secondaryListItems = (
   <React.Fragment>
-    <ListSubheader component="div" inset>
+    {/* <ListSubheader component="div" inset>
       Profile
     </ListSubheader>
     
 
-    <ListItemButton onClick={logout}>
+    <ListItemButton >
       <ListItemIcon>
         <LogoutIcon />
       </ListItemIcon>
       <ListItemText primary="Sign Out" />
-    </ListItemButton>
+    </ListItemButton> */}
   </React.Fragment>
 );

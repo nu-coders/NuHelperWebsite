@@ -7,6 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
+import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -41,12 +42,46 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
 import logo from '../assets/images/logo.png';
-import { query, collection, getDocs, where } from "firebase/firestore";
-import { auth, db, logout } from "../firestore/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useNavigate } from "react-router-dom";
-import Switch from '@mui/material/Switch';
+import LinearProgress from '@mui/material/LinearProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Modal from '@mui/material/Modal';
 
+
+
+import Switch from '@mui/material/Switch';
+import {
+  Scheduler,
+  WeekView,
+  Appointments,
+} from '@devexpress/dx-react-scheduler-material-ui';
+
+import TableCell from '@mui/material/TableCell';
+import { ViewState } from '@devexpress/dx-react-scheduler';
+
+
+const PORT = process.env.PORT || 8094;
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+  maxHeight: '70%',
+  width: '60%',
+};
+
+const viewState = {
+  currentView: 'week',
+  currentDate: new Date('2023-03-05'),
+  firstDayOfWeek: 0,
+}
+
+const startDate = new Date(2023, 0, 1);
+const endDate = new Date(2023, 0, 7);
 const mdTheme = createTheme();
 
 const marks = [
@@ -80,7 +115,48 @@ const marks = [
   },    
 ]
 
+const CustomCell = ({ formatDate, startDate, ...restProps }) => (
+  <TableCell {...restProps}>
+    {formatDate(startDate, { weekday: 'long' })}
+  </TableCell>
+);
+const formatDate = (date) => {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
 function DashboardContent() {
+
+ 
+
+    const [openModal, setOpenModal] = React.useState([]);
+    const handleOpenModal = (index,value) => {
+      let tempModal = [...openModal];
+      tempModal[index] = value;
+      setOpenModal(tempModal);
+    };
+    const handleCloseModal = (index) => {
+      let tempModal = [...openModal];
+      tempModal[index] = false;
+      setOpenModal(tempModal);
+    };
+    const [openSnackbar, setOpenSnackbar] = React.useState(false);
+    const handleClickSnackBar = () => {
+      setOpenSnackbar(true);
+    };
+    const handleCloseSnackBar = (event, reason) => {
+      if (reason === 'clickaway') {
+        return;
+      }
+      setOpenSnackbar(false);
+    };
+    const action = (
+      <React.Fragment>
+        <IconButton size="small" aria-label="close" color="inherit" onClick={handleCloseSnackBar}>
+          <ClearIcon fontSize="small" />
+        </IconButton>
+      </React.Fragment>
+    );
+
     const [open, setOpen] = React.useState(true);
     const [section, setSections] = React.useState([]);
     const [coursesSections, setCoursesSections] = React.useState([]);
@@ -93,30 +169,7 @@ function DashboardContent() {
     const handleChangeSlider = (event, newValue) => {
       setNumberOfDays(newValue);
     };
-    const [user, loading, error] = useAuthState(auth);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [userUid, setUserUid] = useState("");
-    const navigate = useNavigate();
-    const fetchUserName = async () => {
-      try {
-        const q = query(collection(db, "users"), where("uid", "==", user?.uid));
-        const doc = await getDocs(q);
-        const data = doc.docs[0].data();
-        setName(data.name);
-        setEmail(data.email);
-        setUserUid(user.uid);
-      } catch (err) {
-        console.error(err);
-        alert("An error occured while fetching user data");
-      }
-    };
-    useEffect(() => {
-      if (loading) return;
-      if (!user) return navigate("/");
-      fetchUserName();
-    }, [user, loading]);
-    
+   
     const [loading2, setLoading] = useState(false);
 
     const [data, setData] = useState([]);
@@ -130,8 +183,11 @@ function DashboardContent() {
               response = {data: JSON.parse(cachedData)};
               console.log('data from cache');
             } else {
+              // response = await axios.get(
+              //   'https://test.nucoders.dev:8096/getAllCourseNames',
+              // );
               response = await axios.get(
-                '//localhost:8080/getAllCourseNames',
+                '//localhost:8094/getAllCourseNames',
               );
               localStorage.setItem('courseNames', JSON.stringify(response.data));
               console.log('data from server');
@@ -159,6 +215,7 @@ function DashboardContent() {
       let selectedCoursesTemp = [...addedCourses, course];
       let uniqeSelectedCoursesTemp = [...new Set(selectedCoursesTemp)];
       setAddedCourses(uniqeSelectedCoursesTemp );
+      setOpenSnackbar(true);
     }
     const removeCourse = (course)=>{
     console.log('removed ' +course) 
@@ -176,11 +233,15 @@ function DashboardContent() {
    const [tables, setTables]= React.useState([]);
    const [useFilters, setUseFilters] = React.useState(false);
    const [filters, setFilters] = React.useState({});
+   const [loadingTables, setLoadingTables] = useState(false);
+   const [foundTables, setFoundTables] = useState(true);
 
-
+     
    const getData = async () => {
-
+    setLoadingTables(true);
     setLoading(true);
+    setFoundTables(true);
+    setTables(null);
     console.log("using filters " + useFilters);
     try{
       let response;
@@ -207,7 +268,8 @@ function DashboardContent() {
         daysToGo.push("Saturday");
       }
 
-      response =  await axios.post('//localhost:8080/createTableNoClash', 
+      // response =  await axios.post('https://test.nucoders.dev:8096/createTableNoClashWeb',
+      response =  await axios.post('//localhost:8094/createTableNoClashWeb', 
       {
         "id": addedCourses,
         "useFilters": useFilters,
@@ -217,35 +279,24 @@ function DashboardContent() {
         },
         }
       );
+      if(response.data.length == 0 || response.data == null){
+        console.log("no tables found");
+        setFoundTables(false);
+      }
       console.log('data from server' + response.data);
       setTables(response.data);
     } catch{
       console.log('error');
     }finally{
+      
       setLoading(false);
+      setLoadingTables(false);
     }
 
     
   };
   
-  const saveTableToUser = async (table) => {
-    setLoading(true);
-    try {
-      let response;
-      response = await axios.post('//localhost:8080/saveTable', {
-        userId : userUid,
-        userEmail : email,
-        table: table,
-      });
-      console.log('data from server' + response);
-      window.alert('Table saved successfully');
-      navigate('/home');
-    } catch(err) {
-      console.log('error'+err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const [state, setState] = React.useState({
     sunday: true,
@@ -271,6 +322,45 @@ function DashboardContent() {
    useEffect(() => {
  
   },[tables])
+
+  const [viewState, setViewState] = useState({
+    currentViewName: 'week',
+    currentDate: new Date().toISOString()
+  });
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString());
+
+
+  const [userId, setUserId] = useState(null);
+  const [showEmailField, setShowEmailField] = useState('hidden');
+  const [showLinkField, setShowLinkField] = useState('hidden');
+  const [shareLink, setShareLink] = useState('');
+  const sendTable = async (table, userId) => {
+    if(showEmailField === 'visible' && userId !== null && userId !== undefined && userId !== '') {
+      try{
+        let response;
+        // response =  await axios.post('https://test.nucoders.dev:8096/saveTable',
+        response =  await axios.post('//localhost:8094/saveTable',
+        {
+          "userId": userId,
+          "table": table,
+          }
+        );
+        setShareLink(JSON.stringify(response.data));
+        setShowLinkField('visible');
+        console.log('data from server' +JSON.stringify(response.data));
+      } catch{
+        console.log('error');
+      }finally{
+        setLoading(false);
+      }
+    }
+  };
+
+  
+
+  useEffect(() => {
+  },[userId, showEmailField, shareLink,showLinkField])
+
   return (    
     <ThemeProvider theme={mdTheme}>
       <Box sx={{ display: 'flex' }}>
@@ -304,8 +394,7 @@ function DashboardContent() {
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
-              {/* Search Courses */}
-              <Grid item xs={12} md={8} lg={9}>
+              {/* <Grid item xs={12} md={8} lg={9}>
                 <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,overflow: 'auto',backgroundColor: `#caf0f8`}}>
                     <Grid container spacing={3} >
 
@@ -317,35 +406,105 @@ function DashboardContent() {
                             </Grid>
                     </Grid>
                 </Paper>
-            </Grid>
+              </Grid> */}
               <Grid item xs={12} md={8} lg={9}>
+                <Paper sx={{marginBottom:2,p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,overflow: 'auto',backgroundColor: `#caf0f8`}}>
+                    <Grid container spacing={3} >
+
+                        <Grid item xs={9} md={8} lg={9} >
+                                <Autocomplete disablePortal id="combo-box-demo" options={coursesList} inputValue = {selectedCourse} onChange={(event, newValue) => { setSelectedCourse(newValue); }}  renderInput={(params) => <TextField {...params}   label="Search Courses" />} />
+                            </Grid>
+                            <Grid item xs={3} md={4} lg={3}>
+                                <Button sx={{backgroundColor: `#0077b6`}} variant="contained" onClick={() => {addCourse();}} >Add</Button>
+                            </Grid>
+                    </Grid>
+                </Paper>
+
                 <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,backgroundColor: `#0077b6`}}>
                     <Paper elevation={0} style={{minHeight: 400,maxHeight: 600, overflow: 'auto',backgroundColor: `#0077b6`}}>
 
                                 <List>
-                                  {tables && tables.map((table, index) => (
+                                  {loadingTables &&     <Box sx={{ width: '100%' }}><Typography variant='h4' align="center" > Loading...</Typography>  <LinearProgress /></Box>}  
+                                  {/* { tables && <p> Tables Found {tables.length}</p>} */}
+                                  {tables && <Box> {tables.length !== 0 &&<Typography variant='h6' align="center" > Tables Found {tables.length}</Typography>} 
+                                    {tables.map((table, index) => (
+                                      console.log(table),
+                                      <Paper sx={{margin:5 ,display: 'flex',flexDirection: 'column'}}>
+                                        <Scheduler  data ={table} >
+                                            
+                                          {/* // remove the dates from this week */}
+                                          <ViewState
+                                              defaultCurrentDate={startDate}
+                                              defaultCurrentViewName="Week"
+                                            />
+                                          <WeekView {...viewState} startDayHour={6.5} endDayHour={22} excludedDays={[5,6]} cellDuration={120} startDate={startDate} endDate={endDate} />
+                                          <Appointments />
+                                        </Scheduler>
+                                        {/* Button to view all details about this table */}
+                                        
+                                        <Button sx={{backgroundColor: `#03045e`, m:2}} variant="contained" onClick={() => handleOpenModal(index,true)}>View Details</Button>
+                                        <Modal
+                                          open={openModal[index]}
+                                          onClose={()=> {
+                                            handleOpenModal(index);
+                                            setShowEmailField('hidden');
+                                            setShowLinkField('hidden');
+                                            setUserId(null);
+                                            setShareLink(null);
+                                          }}
+                                          aria-labelledby="modal-modal-title"
+                                          aria-describedby="modal-modal-description"
+                                          
+                                        >
+                                          <Box sx={modalStyle} >
 
-                                    <Paper key  ={index}sx={{ p:2, m: 2,backgroundColor: `#caf0f8`, alignItems:'center'}} alignItems="center" justify="center">
-                                      <Typography> Table number {index+1} </Typography>
-                                      {table.map((course, index)=>(
-                                        <Paper key  ={course.id}sx={{ p:2, m: 2,backgroundColor: `#caf7b8`}}>
-                                          <Typography> {course.courseId + " " + course.courseName} </Typography>
-                                          <Typography> Section: {course.section } </Typography>
-                                          <Typography> {course.courseType + " " + course.section} </Typography>
-                                          <Typography> {course.schedule[0].dayDesc + " " + course.schedule[0].startTime + " - " + course.schedule[0].endTime} </Typography>
-                                          <Typography> Instructor :{ course.instructors[0].fullName}</Typography>
-                                        </Paper>
-                                      ))}
-                                      <Button align="center" variant="contained" onClick={()=>{saveTableToUser(table)}}>Choose Table</Button>
-                                    </Paper>
-                                  ))}
-                                  {tables && tables.length === 0 && <Typography variant='h3' align="center" > No tables found </Typography>}
-                                                                     
+                                              <Typography  align="center" id="modal-modal-title" variant="h5" component="h2" >
+                                                Table number {index+1}
+                                              </Typography>
+                                            <Paper sx={{m:2}}>
+
+                                            <List>
+                                            <Paper elevation={0} style={{height:'40vmin', overflow: 'scroll'}}>
+
+                                              {table.map((course) => (
+                                                <Paper sx={{margin:5 ,display: 'flex',flexDirection: 'column',backgroundColor: `#0077b6`, color: "#FFF"}}>
+                                                  <Typography variant='h6' align="center" >{course.title + "-" + course.courseName}</Typography>
+                                                  <Typography variant='h6' align="center" >Section: {course.courseSection}</Typography>
+                                                  <Typography variant='h6' align="center" >Building: {course.location} Room: {course.courseRoom}</Typography>
+                                                  <Typography variant='h6' align="center" >Instructor: {course.instructor}</Typography>
+                                                  <Typography variant='h6' align="center" >Seats Left: {course.seatsLeft}</Typography>
+                                                  <Typography variant='h6' align="center" > {course.courseType} </Typography>
+                                                  <Typography variant='h6' align="center" >Day: {course.courseDay} </Typography>
+                                                  <Typography variant='h6' align="center" >Start Time: {course.courseStartTime} </Typography>
+                                                  <Typography variant='h6' align="center" >End Time: {course.courseEndTime} </Typography>
+
+                                                </Paper>
+                                              ))}
+                                            </Paper>
+                                              </List>
+                                            </Paper>
+                                            <Box sx={{display: 'flex',flexDirection: 'row'}}>
+                                              <Button sx={{backgroundColor: `#03045e`}} variant="contained" onClick={()=> {sendTable(table,userId);setShowEmailField('visible');}} >Share</Button>
+                                              <TextField sx={{ visibility:showEmailField, marginLeft:2}} id="outlined-basic" label="Email" variant="outlined" onChange={(event) => {setUserId(event.target.value);}} />
+                                              <Typography sx={{ color: '#000', marginLeft:2, visibility:showLinkField}}variant='h6'  >Link: localhost:3000/sharedTable/{shareLink.replace(/"/g,'')}</Typography>
+                                             {/* show link that is correct with this route format <Route exact path='/SharedTable/:userId' render={() => <h1>Shared Table</h1>} /> */}
+                                              {/* Link to this page SharedTable with the parameter userId */}
+                                            
+                                                
+                                            </Box>
+                                          </Box>
+                                        </Modal>
+                                      </Paper>
+                                    ))}
+                                  </Box>}
+                                  {!foundTables && <Typography variant='h3' align="center" > No tables found!</Typography>}          
+                                  {console.log(foundTables,loadingTables)}             
                                 </List>
                     </Paper>
                 </Paper>
               </Grid>
-              {/* Recent Deposits */}
+
+
               <Grid item  xs={12} md={4} lg={3} sx={{flexDirection:'row'}}>
                 <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', minHeight:350 ,backgroundColor: `#caf0f8` }}>
                   <List>
@@ -361,7 +520,13 @@ function DashboardContent() {
                             </ListItemSecondaryAction>
                         </ListItem>
                     ))}
-
+                  <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={900}
+                    onClose={handleCloseSnackBar}
+                    message="Course Added!"
+                    action={action}
+                  />
       
       
       
@@ -437,3 +602,4 @@ function DashboardContent() {
 export default function TableMaker() {
   return <DashboardContent />;
 }
+
