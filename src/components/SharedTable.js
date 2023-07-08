@@ -237,13 +237,14 @@ const viewState = {
      const [filters, setFilters] = React.useState({});
      const [loadingTables, setLoadingTables] = useState(false);
      const [foundTables, setFoundTables] = useState(true);
-  
+     
        
      const getData = async () => {
       setLoadingTables(true);
       setLoading(true);
       setFoundTables(true);
       setTables(null);
+
       console.log("using filters " + useFilters);
       try{
         let response;
@@ -286,7 +287,7 @@ const viewState = {
           setFoundTables(false);
         }
         console.log('data from server' + response.data);
-        setTables(response.data);
+        setTables(new Array(response.data));
       } catch{
         console.log('error');
       }finally{
@@ -360,6 +361,8 @@ const viewState = {
       }
     };
   
+    const [sharedTable, setSharedTable] = useState([]);
+    const [userEmail, setUserEmail] = useState('');
     useEffect(() => {
         const fetchData = async () => {
           setLoading(true);
@@ -375,7 +378,8 @@ const viewState = {
                     "userId": tableId
                 }   
               );
-              setTables(response.data);
+              setSharedTable(response.data.table);
+              setUserEmail(response.data.userId);
               console.log(response.data);
             
           } catch{
@@ -430,16 +434,14 @@ return (
                 <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,backgroundColor: `#0077b6`}}>
                     <Paper elevation={0} style={{minHeight: 400,maxHeight: 600, overflow: 'auto',backgroundColor: `#0077b6`}}>
 {/* show the parameter in the url tableId */}
-                        {tableId}
-
-                                <List>
+                               <List>
                                   {loadingTables &&     <Box sx={{ width: '100%' }}><Typography variant='h4' align="center" > Loading...</Typography>  <LinearProgress /></Box>}  
                                   {/* { tables && <p> Tables Found {tables.length}</p>} */}
                                   {tables && <Box> {tables.length !== 0 &&<Typography variant='h6' align="center" > Tables Found {tables.length}</Typography>} 
-                                    {tables.map((table, index) => (
-                                      console.log(table),
+                                      <Typography sx={{color:'#fff'}} variant='h6' align="center" >Shared By: {userEmail}</Typography>
+
                                       <Paper sx={{margin:5 ,display: 'flex',flexDirection: 'column'}}>
-                                        <Scheduler  data ={table} >
+                                        <Scheduler  data ={sharedTable} >
                                             
                                           {/* // remove the dates from this week */}
                                           <ViewState
@@ -451,11 +453,11 @@ return (
                                         </Scheduler>
                                         {/* Button to view all details about this table */}
                                         
-                                        <Button sx={{backgroundColor: `#03045e`, m:2}} variant="contained" onClick={() => handleOpenModal(index,true)}>View Details</Button>
+                                        <Button sx={{backgroundColor: `#03045e`, m:2}} variant="contained" onClick={() => handleOpenModal(0,true)}>View Details</Button>
                                         <Modal
-                                          open={openModal[index]}
+                                          open={openModal[0]}
                                           onClose={()=> {
-                                            handleOpenModal(index);
+                                            handleOpenModal(0);
                                             setShowEmailField('hidden');
                                             setShowLinkField('hidden');
                                             setUserId(null);
@@ -467,15 +469,15 @@ return (
                                         >
                                           <Box sx={modalStyle} >
 
-                                              <Typography  align="center" id="modal-modal-title" variant="h5" component="h2" >
+                                              {/* <Typography  align="center" id="modal-modal-title" variant="h5" component="h2" >
                                                 Table number {index+1}
-                                              </Typography>
+                                              </Typography> */}
                                             <Paper sx={{m:2}}>
 
                                             <List>
                                             <Paper elevation={0} style={{height:'40vmin', overflow: 'scroll'}}>
 
-                                              {table.map((course) => (
+                                              {sharedTable.map((course) => (
                                                 <Paper sx={{margin:5 ,display: 'flex',flexDirection: 'column',backgroundColor: `#0077b6`, color: "#FFF"}}>
                                                   <Typography variant='h6' align="center" >{course.title + "-" + course.courseName}</Typography>
                                                   <Typography variant='h6' align="center" >Section: {course.courseSection}</Typography>
@@ -493,18 +495,13 @@ return (
                                               </List>
                                             </Paper>
                                             <Box sx={{display: 'flex',flexDirection: 'row'}}>
-                                              <Button sx={{backgroundColor: `#03045e`}} variant="contained" onClick={()=> {sendTable(table,userId);setShowEmailField('visible');}} >Share</Button>
-                                              <TextField sx={{ visibility:showEmailField, marginLeft:2}} id="outlined-basic" label="Email" variant="outlined" onChange={(event) => {setUserId(event.target.value);}} />
-                                              <Typography sx={{ color: '#000', marginLeft:2, visibility:showLinkField}}variant='h6'  >Link: localhost:3000/sharedTable/:tableId={shareLink}</Typography>
-                                             {/* show link that is correct with this route format <Route exact path='/SharedTable/:userId' render={() => <h1>Shared Table</h1>} /> */}
-                                              {/* Link to this page SharedTable with the parameter userId */}
+
                                             
                                                 
                                             </Box>
                                           </Box>
                                         </Modal>
                                       </Paper>
-                                    ))}
                                   </Box>}
                                   {!foundTables && <Typography variant='h3' align="center" > No tables found!</Typography>}          
                                   {console.log(foundTables,loadingTables)}             
