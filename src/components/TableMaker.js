@@ -187,7 +187,7 @@ function DashboardContent() {
               //   'https://test.nucoders.dev:8096/getAllCourseNames',
               // );
               response = await axios.get(
-                '//localhost:8094/getAllCourseNames',
+                'https://tm.nucoders.dev/getAllCourseNames',
               );
               localStorage.setItem('courseNames', JSON.stringify(response.data));
               console.log('data from server');
@@ -269,7 +269,7 @@ function DashboardContent() {
       }
 
       // response =  await axios.post('https://test.nucoders.dev:8096/createTableNoClashWeb',
-      response =  await axios.post('//localhost:8094/createTableNoClashWeb', 
+      response =  await axios.post('https://tm.nucoders.dev/createTableNoClashWeb', 
       {
         "id": addedCourses,
         "useFilters": useFilters,
@@ -339,13 +339,14 @@ function DashboardContent() {
       try{
         let response;
         // response =  await axios.post('https://test.nucoders.dev:8096/saveTable',
-        response =  await axios.post('//localhost:8094/saveTable',
+        response =  await axios.post('https://tm.nucoders.dev/saveTable',
         {
           "userId": userId,
           "table": table,
           }
         );
-        setShareLink(JSON.stringify(response.data));
+        console.log("The data before stringify is " + response.data._id);
+        setShareLink(JSON.stringify(response.data).replace(/"/g,''));
         setShowLinkField('visible');
         console.log('data from server' +JSON.stringify(response.data));
       } catch{
@@ -486,7 +487,7 @@ function DashboardContent() {
                                             <Box sx={{display: 'flex',flexDirection: 'row'}}>
                                               <Button sx={{backgroundColor: `#03045e`}} variant="contained" onClick={()=> {sendTable(table,userId);setShowEmailField('visible');}} >Share</Button>
                                               <TextField sx={{ visibility:showEmailField, marginLeft:2}} id="outlined-basic" label="Email" variant="outlined" onChange={(event) => {setUserId(event.target.value);}} />
-                                              <Typography sx={{ color: '#000', marginLeft:2, visibility:showLinkField}}variant='h6'  >Link: localhost:3000/sharedTable/{shareLink.replace(/"/g,'')}</Typography>
+                                              <Typography sx={{ color: '#000', marginLeft:2, visibility:showLinkField}}variant='h6'  >Link: https://nucoders.dev/sharedTable/{shareLink}</Typography>
                                              {/* show link that is correct with this route format <Route exact path='/SharedTable/:userId' render={() => <h1>Shared Table</h1>} /> */}
                                               {/* Link to this page SharedTable with the parameter userId */}
                                             

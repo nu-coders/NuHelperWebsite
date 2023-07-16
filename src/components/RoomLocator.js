@@ -103,7 +103,7 @@ function DashboardContent() {
               console.log('data from cache');
             } else {
               response = await axios.get(
-                'https://test.nucoders.dev:8095/api/beta/suglisttm',
+                'https://rl.nucoders.dev/production/suglisttm',
               );
               localStorage.setItem('courses', JSON.stringify(response.data));
               console.log('data from server' + response.data);
@@ -156,7 +156,7 @@ function DashboardContent() {
             console.log('data from cache');
           } else {
             response = await axios.get(
-              'https://test.nucoders.dev:8095/api/beta/getrooms/',
+              'https://rl.nucoders.dev/production/getrooms',
             );
             localStorage.setItem('emptyRooms', JSON.stringify(response.data));
             console.log('data from server' + response.data);
@@ -210,7 +210,7 @@ function DashboardContent() {
     try{
         console.log("selected course is "+selectedCourse);
         let response;
-      response =  await axios.get(`https://test.nucoders.dev:8095/api/beta/getroom/?id=${selectedCourse.split("-")[1].trim()}`);
+      response =  await axios.get(`https://rl.nucoders.dev/production/getroom/?id=${selectedCourse.split("-")[1].trim()}`);
       console.log('data from server' + response.data);
       setCurrRoomTable(response.data);
       setNoSelectedRoom(false);

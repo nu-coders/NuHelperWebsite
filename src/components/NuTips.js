@@ -130,7 +130,7 @@ function DashboardContent() {
               console.log('data from cache');
             } else {
               response = await axios.get(
-                '//localhost:8080/getAllCourseNames',
+                'https://tm.nucoders.dev/getAllCourseNames',
               );
               localStorage.setItem('courseNamesNu', JSON.stringify(response.data));
               console.log('data from server');
@@ -161,7 +161,7 @@ function DashboardContent() {
       let uniqeSelectedCoursesTemp = [...new Set(selectedCoursesTemp)];
       setAddedCourses(uniqeSelectedCoursesTemp );
       let response ;
-      response =  await axios.post('//localhost:8082/getRoomPostsByRoomId', 
+      response =  await axios.post('https://tm.nucoders.dev/getRoomPostsByRoomId', 
       {
         "roomId": course.replace('/',''),
         }
@@ -178,7 +178,7 @@ function DashboardContent() {
   const onUpvote = async (post) => {
     setIsClicked(true);
     let response ;
-    response =  await axios.post('//localhost:8082/upvotePost',
+    response =  await axios.post('https://tm.nucoders.dev/upvotePost',
     {
       "postId": post.postId,
       "userId": userUid,
@@ -192,7 +192,7 @@ function DashboardContent() {
   const onDownvote = async (post) => {
     setIsClicked(true);
     let response ;
-    response =  await axios.post('//localhost:8082/downvotePost',
+    response =  await axios.post('https://tm.nucoders.dev/downvotePost',
     {
       "postId": post.postId,
       "userId": userUid,

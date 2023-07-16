@@ -56,7 +56,7 @@ function DashboardContent() {
               console.log('data from cache');
             } else {
               response = await axios.get(
-                'https://test.nucoders.dev:8096/getAllCourseNames',
+                'https://tm.nucoders.dev/getAllCourseNames',
               );
               localStorage.setItem('courseNames', JSON.stringify(response.data));
               console.log('data from server');
@@ -97,7 +97,7 @@ function DashboardContent() {
       let response;
       
 
-      response =  await axios.post('https://test.nucoders.dev:8096/getCourseById', 
+      response =  await axios.post('https://tm.nucoders.dev/getCourseById', 
       {
         "id": course,
       });

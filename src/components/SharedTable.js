@@ -189,7 +189,7 @@ const viewState = {
                 //   'https://test.nucoders.dev:8096/getAllCourseNames',
                 // );
                 response = await axios.get(
-                  '//localhost:8094/getAllCourseNames',
+                  'https://tm.nucoders.dev/getAllCourseNames',
                 );
                 localStorage.setItem('courseNames', JSON.stringify(response.data));
                 console.log('data from server');
@@ -272,7 +272,7 @@ const viewState = {
         }
   
         // response =  await axios.post('https://test.nucoders.dev:8096/createTableNoClashWeb',
-        response =  await axios.post('//localhost:8094/createTableNoClashWeb', 
+        response =  await axios.post('https://tm.nucoders.dev/createTableNoClashWeb', 
         {
           "id": addedCourses,
           "useFilters": useFilters,
@@ -344,7 +344,7 @@ const viewState = {
         try{
           let response;
           // response =  await axios.post('https://test.nucoders.dev:8096/saveTable',
-          response =  await axios.post('//localhost:8094/saveTable',
+          response =  await axios.post('https://tm.nucoders.dev/saveTable',
           {
             "userId": userId,
             "table": table,
@@ -373,7 +373,7 @@ const viewState = {
               //   'https://test.nucoders.dev:8096/getAllCourseNames',
               // );
               response = await axios.post(
-                '//localhost:8094/getSavedtable',
+                'https://tm.nucoders.dev/getSavedtable',
                 {
                     "userId": tableId
                 }   
