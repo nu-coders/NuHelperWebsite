@@ -1,29 +1,32 @@
-import { Route, Switch} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import TableMaker from "./components/TableMaker";
-import RoomLocator from "./components/RoomLocator";
+import RoomLocator from "./components/RoomLocator"; 
 import SearchCourse from "./components/SearchCourse";
 import Box from '@mui/material/Box';
-import SharedTable
- from "./components/SharedTable";
+import SharedTable from "./components/SharedTable";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Reset from "./components/Reset";
+
+
 function App() {
   return (
     <div className="app">
-
       <Box >
-        <Switch>
-          <Route exact path="/" render={() => <SearchCourse />} />
-          <Route exact path="/home" render={() => <SearchCourse />} />
-          <Route exact path="/tablemaker" render={() => <TableMaker />} />
-          <Route exact path="/roomlocator" render={() => <RoomLocator />} />
-          <Route exact path="/searchCourse" render={() => <SearchCourse />} />
-          <Route exact path='/signup' render={() => <h1>Sign Up</h1>} />
-          <Route exact path='/login' render={() => <h1>Log In</h1>} />
-          <Route exact path='/reset' render={() => <h1>Reset</h1>} />
-          <Route exact path='/otp' render={() => <h1>OTP</h1>} />
-          <Route exact path='/SharedTable/:tableId' render={() => <SharedTable /> } />
-        </Switch>
+        <Routes>
+          <Route path="/" element={<SearchCourse />} />
+          <Route path="/home" element={<SearchCourse />} /> 
+          <Route path="/tablemaker" element={<TableMaker />} />
+          <Route path="/roomlocator" element={<RoomLocator />} />
+          <Route path="/searchCourse" element={<SearchCourse />} />
+          <Route path="/signup" element={<h1>Sign Up</h1>}/>
+          <Route path="/login" element={<h1>Log In</h1>} /> 
+          <Route path="/reset" element={<h1>Reset</h1>} />
+          <Route path="/otp" element={<h1>OTP</h1>} />
+          <Route path="/SharedTable/:tableId" element={ <SharedTable />} />
+       </Routes>    
       </Box>
-    </div>
+    </div>  
   );
 }
 
