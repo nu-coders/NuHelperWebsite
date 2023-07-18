@@ -19,9 +19,9 @@ function App() {
           <Route path="/tablemaker" element={<TableMaker />} />
           <Route path="/roomlocator" element={<RoomLocator />} />
           <Route path="/searchCourse" element={<SearchCourse />} />
-          <Route path="/signup" element={<h1>Sign Up</h1>}/>
+          <Route path="/signup" element={<Register/>}/>
           <Route path="/login" element={<Login/>} /> 
-          <Route path="/reset" element={<h1>Reset</h1>} />
+          <Route path="/reset" element={<Reset/>} />
           <Route path="/otp" element={<h1>OTP</h1>} />
           <Route path="/SharedTable/:tableId" element={ <SharedTable />} />
        </Routes>    
