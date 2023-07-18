@@ -4,12 +4,14 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
 import LogoutIcon from '@mui/icons-material/Logout';
-import HomeIcon from '@mui/icons-material/Home';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import RoomIcon from '@mui/icons-material/Room';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import Link from '@mui/material/Link';
 import SearchIcon from '@mui/icons-material/Search';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import LoginIcon from '@mui/icons-material/Login';
+
 export const mainListItems = (
   <React.Fragment>
     {/* <Link href="/home" color="inherit" underline="none">
@@ -61,16 +63,52 @@ export const mainListItems = (
 
 export const secondaryListItems = (
   <React.Fragment>
-    {/* <ListSubheader component="div" inset>
+     <ListSubheader component="div" >
+      Undergoing Maintenance
+    </ListSubheader>
+    <ListSubheader component="div" inset>
       Profile
     </ListSubheader>
     
-
+    
+    
     <ListItemButton >
       <ListItemIcon>
         <LogoutIcon />
       </ListItemIcon>
       <ListItemText primary="Sign Out" />
-    </ListItemButton> */}
+    </ListItemButton>
+
+    <ListSubheader component="div" >
+      For Developers
+    </ListSubheader>
+
+    <Link href="/signup" color="inherit" underline="none">
+      <ListItemButton >
+        <ListItemIcon>
+          <AppRegistrationIcon />
+        </ListItemIcon>
+        <ListItemText primary="Register" />
+      </ListItemButton>
+    </Link>
+
+    <Link href="/login" color="inherit" underline="none">
+      <ListItemButton >
+        <ListItemIcon>
+          <LoginIcon />
+        </ListItemIcon>
+        <ListItemText primary="Login" />
+      </ListItemButton>
+    </Link>
+
+    <Link href="/reset" color="inherit" underline="none">
+    <ListItemButton >
+      <ListItemIcon>
+        <RestartAltIcon />
+      </ListItemIcon>
+      <ListItemText primary="Reset" />
+    </ListItemButton>
+    </Link>
+
   </React.Fragment>
 );
