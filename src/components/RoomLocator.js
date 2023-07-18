@@ -92,30 +92,42 @@ function DashboardContent() {
     const [loading2, setLoading] = useState(false);
     const [emptyRooms, setEmptyRooms] = useState([]);
     const [data, setData] = useState([]);
-    useEffect(() => {
-        const fetchData = async () => {
-          setLoading(true);
-          try{
-            let response;
-            const cachedData = localStorage.getItem('rooms');
-            if(cachedData) {
-              response = {data: JSON.parse(cachedData)};
-              console.log('data from cache');
-            } else {
-              response = await axios.get(
-                'https://rl.nucoders.dev/production/suglisttm',
-              );
-              localStorage.setItem('courses', JSON.stringify(response.data));
-              console.log('data from server' + response.data);
-            }
-            setData(response.data);
-          } catch{
-            console.log('error');
-          }finally{
-            setLoading(false);
+    useEffect(() => {    
+      function isOneDayOld(cachedData) {
+        const { timestamp } = JSON.parse(cachedData);  
+        const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
+        return oneDayAgo > new Date(timestamp);
+      }
+      const fetchData = async () => {
+        setLoading(true); 
+        try {       
+          let response;       
+          const cachedData = localStorage.getItem('rooms');
+        
+          if (cachedData && !isOneDayOld(cachedData)) {
+            response = JSON.parse(cachedData);
+            console.log('data from cache');     
+          } else {  
+            response = await axios.get(
+              'https://rl.nucoders.dev/production/suglisttm',
+            );
+            localStorage.setItem('rooms', JSON.stringify({
+               data: response.data,
+               timestamp: Date.now()
+            }));
+            console.log('data from server');
           }
           
-        };
+          setData(response.data);
+        } catch {
+          console.log('error');
+        } finally {
+          setLoading(false);
+        }    
+      };
+      
+      fetchData();          
+ }, []);
         
         // const fetchEmptyRooms = async () => {
         //   setLoading(true);
@@ -141,8 +153,8 @@ function DashboardContent() {
 
         // };
         // fetchEmptyRooms();
-        fetchData();
-    }, []);
+    //     fetchData();
+    // }, []);
 
     const [rooms, setRooms] = useState([]);
     useEffect(() => {

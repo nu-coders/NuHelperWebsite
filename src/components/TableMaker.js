@@ -173,35 +173,42 @@ function DashboardContent() {
     const [loading2, setLoading] = useState(false);
 
     const [data, setData] = useState([]);
-    useEffect(() => {
-        const fetchData = async () => {
-          setLoading(true);
-          try{
-            let response;
-            const cachedData = localStorage.getItem('courseNames');
-            if(cachedData) {
-              response = {data: JSON.parse(cachedData)};
-              console.log('data from cache');
-            } else {
-              // response = await axios.get(
-              //   'https://test.nucoders.dev:8096/getAllCourseNames',
-              // );
-              response = await axios.get(
-                'https://tm.nucoders.dev/getAllCourseNames',
-              );
-              localStorage.setItem('courseNames', JSON.stringify(response.data));
-              console.log('data from server');
-            }
-            setData(response.data);
-          } catch{
-            console.log('error');
-          }finally{
-            setLoading(false);
+    useEffect(() => {    
+      function isOneDayOld(cachedData) {
+        const { timestamp } = JSON.parse(cachedData);  
+        const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
+        return oneDayAgo > new Date(timestamp);
+      }
+      const fetchData = async () => {
+        setLoading(true); 
+        try {       
+          let response;       
+          const cachedData = localStorage.getItem('courseNames');
+        
+          if (cachedData && !isOneDayOld(cachedData)) {
+            response = JSON.parse(cachedData);
+            console.log('data from cache');     
+          } else {  
+            response = await axios.get(
+              'https://tm.nucoders.dev/getAllCourseNames',
+            );
+            localStorage.setItem('courseNames', JSON.stringify({
+               data: response.data,
+               timestamp: Date.now()
+            }));
+            console.log('data from server');
           }
           
-        };
-        fetchData();
-    }, []);
+          setData(response.data);
+        } catch {
+          console.log('error');
+        } finally {
+          setLoading(false);
+        }    
+      };
+      
+      fetchData();          
+ }, []);
 
     const fullCoursesList = data ? data: null;
     const coursesList = [...new Set(fullCoursesList)];
