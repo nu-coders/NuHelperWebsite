@@ -175,35 +175,46 @@ const viewState = {
       const [loading2, setLoading] = useState(false);
   
       const [data, setData] = useState([]);
+      
       useEffect(() => {
-          const fetchData = async () => {
-            setLoading(true);
-            try{
-              let response;
-              const cachedData = localStorage.getItem('courseNames');
-              if(cachedData) {
-                response = {data: JSON.parse(cachedData)};
-                console.log('data from cache');
-              } else {
-                // response = await axios.get(
-                //   'https://test.nucoders.dev:8096/getAllCourseNames',
-                // );
-                response = await axios.get(
-                  'https://tm.nucoders.dev/getAllCourseNames',
-                );
-                localStorage.setItem('courseNames', JSON.stringify(response.data));
-                console.log('data from server');
-              }
-              setData(response.data);
-            } catch{
-              console.log('error');
-            }finally{
-              setLoading(false);
+        function isOneDayOld(cachedData) {
+          const cachedDate = JSON.parse(cachedData).timestamp;  
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000); 
+          
+          return oneDayAgo > cachedDate;
+        }
+
+        const fetchData = async () => {
+          setLoading(true); 
+          try{  
+            let response;  
+            const cachedData = localStorage.getItem('courseNames');
+            
+            if(cachedData && !isOneDayOld(cachedData)) {
+              response = {data: JSON.parse(cachedData).data};
+              console.log('data from cache');   
+            } else {
+              // Get fresh data from API
+              response = await axios.get('https://tm.nucoders.dev/getAllCourseNames');
+              console.log('data from server');
             }
             
-          };
-          fetchData();
-      }, []);
+            // Set fresh cache     
+            localStorage.setItem('courseNames', JSON.stringify({
+              data: response.data,
+              timestamp: Date.now() 
+            }));
+            
+            setData(response.data);
+          } catch{
+            console.log('error');
+          }finally{
+            setLoading(false); 
+          }  
+        };
+      
+        fetchData();
+    }, []);
   
       const fullCoursesList = data ? data: null;
       const coursesList = [...new Set(fullCoursesList)];
