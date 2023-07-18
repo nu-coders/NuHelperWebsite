@@ -162,10 +162,10 @@ function DashboardContent() {
         </Drawer>
         <Box component="main" sx={{ backgroundColor: (theme) => theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto', }} >
           <Toolbar />
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>{/* Search Courses */}
             <Grid container spacing={3}>
-              {/* Search Courses */}
-              <Grid item xs={12} md={8} lg={9}>
+              
+              {/* <Grid item xs={12} md={8} lg={9}>
                 <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,overflow: 'auto',backgroundColor: `#caf0f8`}}>
                     <Grid container spacing={3} >
 
@@ -177,8 +177,43 @@ function DashboardContent() {
                             </Grid>
                     </Grid>
                 </Paper>
-            </Grid>
-              <Grid item xs={12} md={8} lg={9}>
+            </Grid> */}
+            <Grid item xs={12}>
+              <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',  
+                maxheight: 400, overflow: 'auto', backgroundColor: `#caf0f8`}}>
+                <Grid container spacing={3}>    
+                
+                  <Grid item xs={12} sm={9} md={8}>      
+                    <Autocomplete 
+                      disablePortal  
+                      id="combo-box-demo"
+                      options={coursesList} 
+                      inputValue = {selectedCourse} 
+                      onChange={(event, newValue) => {  
+                        setSelectedCourse(newValue); 
+                      }}
+                      renderInput={(params) => (
+                        <TextField {...params}   
+                          label="Search Courses" 
+                        />
+                      )}  
+                    />  
+            </Grid> 
+         
+         <Grid item xs={12} sm={3} md={4}>                     
+            <Button sx={{backgroundColor: `#0077b6`}}  
+              variant="contained"
+              onClick={() => {
+                getData(selectedCourse.split(" ")[0]);
+              }}>
+              Search
+            </Button>  
+         </Grid>      
+      </Grid>      
+    </Paper>   
+  </Grid>
+
+              <Grid item xs={12}>
                 <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,backgroundColor: `#0077b6`}}>
                     <Paper elevation={0} style={{minHeight: 400,maxHeight: 600, overflow: 'auto',backgroundColor: `#0077b6`}}>
 
