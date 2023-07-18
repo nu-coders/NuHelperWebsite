@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Navigate, useNavigate } from "react-router-dom";
-import {
-  auth,
-  registerWithEmailAndPassword,
-  signInWithGoogle,
-} from "../firestore/firestore";
-
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -37,9 +31,10 @@ export default function Register() {
       name: data.get('fisrtName') + ' ' + data.get('lastName'),
 
     });
-    registerWithEmailAndPassword(data.get('firstName') + ' ' + data.get('lastName'), data.get('email'), data.get('password'));
+    //TODO Register Function  registerWithEmailAndPassword(data.get('firstName') + ' ' + data.get('lastName'), data.get('email'), data.get('password'));
   };
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading, error] = 'TODO';
+  // const [user, loading, error] = useAuthState(auth);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,7 +119,7 @@ export default function Register() {
               Sign Up
             </Button>
             <GoogleButton
-                onClick={() => { signInWithGoogle() }}
+                // TODO sign in with gmail onClick={() => { signInWithGoogle() }}
                 />
             <Grid container justifyContent="flex-end">
               <Grid item>

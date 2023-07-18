@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Navigate, useNavigate } from "react-router-dom";
-import {
-  auth,
-  registerWithEmailAndPassword,
-  signInWithGoogle,
-  sendPasswordReset
-} from "../firestore/firestore";
-
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -36,9 +29,10 @@ export default function Reset() {
       email: data.get('email'),
 
     });
-    sendPasswordReset(data.get('email'));
+    //TODO send password reset sendPasswordReset(data.get('email'));
   };
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading, error] = 'TODO';
+  // const [user, loading, error] = useAuthState(auth);
   const navigate = useNavigate();
 
   useEffect(() => {

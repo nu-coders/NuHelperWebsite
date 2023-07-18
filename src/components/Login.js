@@ -15,7 +15,6 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { auth, logInWithEmailAndPassword, signInWithGoogle } from "../firestore/firestore";
 import GoogleButton from 'react-google-button'
 import logo from '../assets/images/logo.png';
 import Copyright from "./CopyRight";
@@ -31,11 +30,13 @@ export default function Login() {
       email: data.get('email'),
       password: data.get('password'),
     });
-    logInWithEmailAndPassword(data.get('email'), data.get('password'))
+    //TODO : Login Function
   };
 
   
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading, error] = 'TODO';
+  //const [user, loading, error] = useAuthState(auth);
+
   const navigate = useNavigate();
   useEffect(() => {
     if (loading) {
@@ -113,7 +114,7 @@ export default function Login() {
                 Sign In
               </Button>
               <GoogleButton
-                onClick={() => { signInWithGoogle() }}
+                // TODO GMAIL LOGIN onClick={() => {  }}
                 />
               <Grid container>
                 <Grid item xs>
@@ -134,4 +135,6 @@ export default function Login() {
       </Grid>
     </ThemeProvider>
   );
+
+  
 }
