@@ -176,45 +176,6 @@ const viewState = {
   
       const [data, setData] = useState([]);
       
-      useEffect(() => {
-        function isOneDayOld(cachedData) {
-          const cachedDate = JSON.parse(cachedData).timestamp;  
-          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000); 
-          
-          return oneDayAgo > cachedDate;
-        }
-
-        const fetchData = async () => {
-          setLoading(true); 
-          try{  
-            let response;  
-            const cachedData = localStorage.getItem('courseNames');
-            
-            if(cachedData && !isOneDayOld(cachedData)) {
-              response = {data: JSON.parse(cachedData).data};
-              console.log('data from cache');   
-            } else {
-              // Get fresh data from API
-              response = await axios.get('https://tm.nucoders.dev/getAllCourseNames');
-              console.log('data from server');
-            }
-            
-            // Set fresh cache     
-            localStorage.setItem('courseNames', JSON.stringify({
-              data: response.data,
-              timestamp: Date.now() 
-            }));
-            
-            setData(response.data);
-          } catch{
-            console.log('error');
-          }finally{
-            setLoading(false); 
-          }  
-        };
-      
-        fetchData();
-    }, []);
   
       const fullCoursesList = data ? data: null;
       const coursesList = [...new Set(fullCoursesList)];
