@@ -419,7 +419,7 @@ function DashboardContent() {
                 <Paper sx={{marginBottom:2,p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,overflow: 'auto',backgroundColor: `#caf0f8`}}>
                     <Grid container spacing={3} >
 
-                        <Grid item xs={9} md={8} lg={9} >
+                        <Grid item xs={12} md={8} lg={9} >
                                 <Autocomplete disablePortal id="combo-box-demo" options={coursesList} inputValue = {selectedCourse} onChange={(event, newValue) => { setSelectedCourse(newValue); }}  renderInput={(params) => <TextField {...params}   label="Search Courses" />} />
                             </Grid>
                             <Grid item xs={3} md={4} lg={3}>
@@ -428,7 +428,7 @@ function DashboardContent() {
                     </Grid>
                 </Paper>
 
-                <Paper sx={{p: 2,display: 'flex',flexDirection: 'column',maxheight: 400,backgroundColor: `#0077b6`}}>
+                <Paper sx={{p: 0,display: 'flex',flexDirection: 'column',maxheight: 400,backgroundColor: `#0077b6`}}>
                     <Paper elevation={0} style={{minHeight: 400,maxHeight: 600, overflow: 'auto',backgroundColor: `#0077b6`}}>
 
                                 <List>
@@ -437,7 +437,7 @@ function DashboardContent() {
                                   {tables && <Box> {tables.length !== 0 &&<Typography variant='h6' align="center" > Tables Found {tables.length}</Typography>} 
                                     {tables.map((table, index) => (
                                       console.log(table),
-                                      <Paper sx={{margin:5 ,display: 'flex',flexDirection: 'column'}}>
+                                      <Paper sx={{margin:1 ,display: 'flex',flexDirection: 'column'}}>
                                         <Scheduler  data ={table} >
                                             
                                           {/* // remove the dates from this week */}
