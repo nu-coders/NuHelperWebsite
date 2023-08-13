@@ -14,7 +14,7 @@ function App() {
     <div className="app">
       <Box >
         <Routes>
-          <Route path="/" element={<SearchCourse />} />
+          <Route path="/" element={<Login />} />
           <Route path="/home" element={<SearchCourse />} /> 
           <Route path="/tablemaker" element={<TableMaker />} />
           <Route path="/roomlocator" element={<RoomLocator />} />
