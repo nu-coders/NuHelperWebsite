@@ -20,7 +20,7 @@ function App() {
           <Route path="/roomlocator" element={<RoomLocator />} />
           <Route path="/searchCourse" element={<SearchCourse />} />
           <Route path="/signup" element={<Register/>}/>
-          <Route path="/login" element={<Login/>} /> 
+          <Route path="/signin" element={<Login/>} /> 
           <Route path="/reset" element={<Reset/>} />
           <Route path="/otp" element={<h1>OTP</h1>} />
           <Route path="/SharedTable/:tableId" element={ <SharedTable />} />

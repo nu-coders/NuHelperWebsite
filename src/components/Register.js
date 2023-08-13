@@ -17,25 +17,66 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import GoogleButton from 'react-google-button'
 import Copyright from "./CopyRight";
+import axios from "axios";
 
 
 const theme = createTheme();
 
 export default function Register() {
+  const navigate = useNavigate();
+
+  const [otp, setOtp] = useState(false);
+  
   const handleSubmit = (event) => {
+
     event.preventDefault();
+    if(!otp){
     const data = new FormData(event.currentTarget);
     console.log({
       email: data.get('email'),
       password: data.get('password'),
-      name: data.get('fisrtName') + ' ' + data.get('lastName'),
+      username: data.get('username') ,
+      phoneNumber: data.get('phone')
 
     });
+    axios.post('https://auth.nucoders.dev/production/signup', {
+      email: data.get('email'),
+      password: data.get('password'),
+      username: data.get('username') ,
+      phoneNumber: data.get('phone')
+    }).then((response) => {
+      console.log(response);
+      setOtp(true);
+    }, (error) => {
+      console.log(error);
+    });
+  }
+  else if(otp){
+    const data = new FormData(event.currentTarget);
+    console.log({
+      email: data.get('email'),
+      password: data.get('password'),
+      username: data.get('username') ,
+      phoneNumber: data.get('phone'),
+      otp: data.get('otp')
+    });
+    axios.post('https://auth.nucoders.dev/production/verifyemail', {
+      email: data.get('email'),
+      verificationCode: data.get('otp')
+    }).then((response) => {
+      console.log(response);
+      setOtp(true);
+      navigate("/signin")
+    }, (error) => {
+      console.log(error);
+    });
+  }
+
+
     //TODO Register Function  registerWithEmailAndPassword(data.get('firstName') + ' ' + data.get('lastName'), data.get('email'), data.get('password'));
   };
   const [user, loading, error] = 'TODO';
   // const [user, loading, error] = useAuthState(auth);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (loading) return;
@@ -64,11 +105,11 @@ export default function Register() {
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoComplete="given-name"
-                  name="firstName"
+                  name="username"
                   required
                   fullWidth
-                  id="firstName"
-                  label="First Name"
+                  id="username"
+                  label="Username"
                   autoFocus
                 />
               </Grid>
@@ -76,9 +117,9 @@ export default function Register() {
                 <TextField
                   required
                   fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
+                  id="phone"
+                  label="Phone Number"
+                  name="phone"
                   autoComplete="family-name"
                 />
               </Grid>
@@ -102,7 +143,19 @@ export default function Register() {
                   id="password"
                   autoComplete="new-password"
                 />
+                
               </Grid>
+              {otp &&<Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="otp"
+                  label="otp"
+                  type="password"
+                  id="otp"
+                />
+                
+              </Grid>}
               <Grid item xs={12}>
                 <FormControlLabel
                   control={<Checkbox value="allowExtraEmails" color="primary" />}
@@ -118,9 +171,9 @@ export default function Register() {
             >
               Sign Up
             </Button>
-            <GoogleButton
+            {/* <GoogleButton
                 // TODO sign in with gmail onClick={() => { signInWithGoogle() }}
-                />
+                /> */}
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link href="/" variant="body2">

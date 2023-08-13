@@ -18,6 +18,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import GoogleButton from 'react-google-button'
 import logo from '../assets/images/logo.png';
 import Copyright from "./CopyRight";
+import axios from "axios";
 
 
 const theme = createTheme();
@@ -31,6 +32,20 @@ export default function Login() {
       password: data.get('password'),
     });
     //TODO : Login Function
+    axios.post('https://auth.nucoders.dev/production/signin', {
+      email: data.get('email'),
+      password: data.get('password'),
+      rememberMe: data.get('rememberMe'),
+      uid : "123456789"
+    }).then((response) => {
+      console.log(response);
+      navigate("/home");
+    }
+    , (error) => {
+      console.log(error);
+    }
+    );
+
   };
 
   
@@ -123,7 +138,7 @@ export default function Login() {
                   </Link>
                 </Grid>
                 <Grid item>
-                  <Link href="/register" variant="body2">
+                  <Link href="/signup" variant="body2">
                     {"Don't have an account? Sign Up"}
                   </Link>
                 </Grid>
