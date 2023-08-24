@@ -100,26 +100,28 @@ function DashboardContent() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        let response;
+        let roomsList;
         const cachedData = localStorage.getItem('rooms');
-        // console.log(cachedData);
+        console.log(cachedData);
 
         if (cachedData && !isOneDayOld(cachedData)) {
-          response = JSON.parse(cachedData);
+          roomsList = JSON.parse(cachedData).data;
           console.log('data from cache');
         } else {
-          response = await axios.get('https://rl.nucoders.dev/production/roomslist');
+          let response = await axios.get('https://rl.nucoders.dev/production/roomslist');
+          let roomsList = response.data.map((room) => `${room.roomId} - building:${room.building}`);
           localStorage.setItem(
             'rooms',
             JSON.stringify({
-              data: response.data,
+              // data:response.data
+              data: roomsList,
               timestamp: Date.now(),
             })
           );
           console.log('data from server');
         }
 
-        setData(response.data);
+        setData(roomsList);
       } catch {
         console.log('error');
       } finally {
@@ -168,7 +170,9 @@ function DashboardContent() {
           response = { data: JSON.parse(cachedData) };
           console.log('data from cache');
         } else {
-          response = await axios.get('https://rl.nucoders.dev/production/emptyrooms');
+          response = await axios.get(
+            `https://rl.nucoders.dev/production/emptyrooms?roomtype=-1&&date=${new Date()}`
+          );
           localStorage.setItem('emptyRooms', JSON.stringify(response.data));
           console.log('data from server' + response.data);
         }
@@ -181,9 +185,9 @@ function DashboardContent() {
     };
     fetchEmptyRooms();
   }, []);
-
   const fullCoursesList = data ? data : null;
   const coursesList = [...new Set(fullCoursesList)];
+  // const coursesList = [1, 2, 3];
   const [selectedCourse, setSelectedCourse] = React.useState();
   const [addedCourses, setAddedCourses] = React.useState([]);
   const toggleDrawer = () => {
@@ -219,10 +223,12 @@ function DashboardContent() {
       console.log('selected course is ' + selectedCourse);
       let response;
       response = await axios.get(
-        `https://rl.nucoders.dev/production/getroom/?id=${selectedCourse.split('-')[1].trim()}`
+        `https://rl.nucoders.dev/production/roomstatus/?roomId=${selectedCourse
+          .split('-')[0]
+          .trim()}`
       );
       console.log('data from server' + response.data);
-      setCurrRoomTable(response.data);
+      setCurrRoomTable([response.data]);
       setNoSelectedRoom(false);
     } catch {
       console.log('error');
@@ -601,46 +607,48 @@ function DashboardContent() {
                           };
                           return (
                             <Paper
-                              key={room['id']}
+                              key={room['roomId']}
                               sx={{ p: 2, m: 2, backgroundColor: '#0077b6', alignItems: 'center' }}
                               alignItems='center'
                               justify='center'
                             >
                               <Paper sx={{ backgroundColor: '#fff', alignItems: 'center' }}>
                                 <Typography variant='h6' align='center'>
-                                  Room {room['id']}{' '}
+                                  Room {room['roomId']}{' '}
                                 </Typography>
                                 <Typography variant='h6' align='center'>
                                   {' '}
-                                  {room['floor']}
+                                  {room['location']}
                                 </Typography>
                                 <Typography variant='h6' align='center'>
                                   {' '}
-                                  {room['type']}
+                                  {room['roomType']}
                                 </Typography>
                               </Paper>
                               <Paper
                                 sx={{
                                   mb: 2,
-                                  backgroundColor:
-                                    colors[room.currentSlot.status ? 'Vacant' : 'Occupied'],
+                                  backgroundColor: colors[room.status ? 'Vacant' : 'Occupied'],
                                   alignItems: 'center',
                                 }}
                               >
                                 {/* {parseTable(room['table'])} */}
                                 <Typography variant='h6' align='center'>
-                                  Status: {room.currentSlot.status ? 'Vacant' : 'Occupied'}
+                                  Status: {room.status ? 'Vacant' : 'Occupied'}
                                 </Typography>
-                                <Typography variant='h6' align='center'>
-                                  Occupied Until: {room.currentSlot['O/V']}
-                                </Typography>
-                                {!room.currentSlot.status && (
+                                {/* <Typography variant='h6' align='center'>
+                                  Occupied Until: {room['O/V']}
+                                </Typography> */}
+                                {!room.status && (
                                   <>
                                     <Typography variant='h6' align='center'>
-                                      Course: {room.currentSlot['course']}
+                                      Course: {room['course']}
                                     </Typography>
                                     <Typography variant='h6' align='center'>
-                                      Section: {room.currentSlot['section']}
+                                      Section: {room['section']}
+                                    </Typography>
+                                    <Typography variant='h6' align='center'>
+                                      Type: {room['type']}
                                     </Typography>
                                   </>
                                 )}
@@ -676,11 +684,11 @@ function DashboardContent() {
                                 }}
                               >
                                 <Typography variant='h6' align='center'>
-                                  Room {room['id']}{' '}
+                                  Room {room['roomId']}{' '}
                                 </Typography>
                                 <Typography variant='h6' align='center'>
                                   {' '}
-                                  {room['floor']}
+                                  {room['location']}
                                 </Typography>
                                 <Typography variant='h6' align='center'>
                                   {' '}
@@ -703,9 +711,9 @@ function DashboardContent() {
                                 <Typography variant='h6' align='center'>
                                   Status: Vacant
                                 </Typography>
-                                <Typography variant='h6' align='center'>
-                                  Occupied Until: {room.currentSlot['O/V']}
-                                </Typography>
+                                {/* <Typography variant='h6' align='center'>
+                                  Occupied Until: {'N/A'}
+                                </Typography> */}
                               </Paper>
                             </Paper>
                           );
