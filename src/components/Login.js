@@ -1,7 +1,7 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { useNavigate } from "react-router-dom";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useNavigate } from 'react-router-dom';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,11 +15,10 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import GoogleButton from 'react-google-button'
+import GoogleButton from 'react-google-button';
 import logo from '../assets/images/logo.png';
-import Copyright from "./CopyRight";
-import axios from "axios";
-
+import Copyright from './CopyRight';
+import axios from 'axios';
 
 const theme = createTheme();
 
@@ -32,38 +31,39 @@ export default function Login() {
       password: data.get('password'),
     });
     //TODO : Login Function
-    axios.post('https://auth.nucoders.dev/production/signin', {
-      email: data.get('email'),
-      password: data.get('password'),
-      rememberMe: data.get('rememberMe'),
-      uid : "123456789"
-    }).then((response) => {
-      console.log(response);
-      navigate("/home");
-    }
-    , (error) => {
-      console.log(error);
-    }
-    );
-
+    axios
+      .post('https://auth.nucoders.dev/production/signin', {
+        email: data.get('email'),
+        password: data.get('password'),
+        rememberMe: data.get('rememberMe'),
+        uid: '123456789',
+      })
+      .then(
+        (response) => {
+          console.log(response);
+          navigate('/home');
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
   };
 
-  
   const [user, loading, error] = 'TODO';
   //const [user, loading, error] = useAuthState(auth);
 
   const navigate = useNavigate();
   useEffect(() => {
     if (loading) {
-        // maybe trigger a loading screen
-        return;
+      // maybe trigger a loading screen
+      return;
     }
-    if (user) navigate("/home");
-    }, [user, loading]);
+    if (user) navigate('/home');
+  }, [user, loading]);
 
   return (
     <ThemeProvider theme={theme}>
-      <Grid container component="main" sx={{ height: '100vh' }}>
+      <Grid container component='main' sx={{ height: '100vh' }}>
         <CssBaseline />
         <Grid
           item
@@ -92,54 +92,46 @@ export default function Login() {
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
               <LockOutlinedIcon />
             </Avatar>
-            <Typography component="h1" variant="h5">
+            <Typography component='h1' variant='h5'>
               Sign in
             </Typography>
-            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Box component='form' noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
-                margin="normal"
+                margin='normal'
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
+                id='email'
+                label='Email Address'
+                name='email'
+                autoComplete='email'
                 autoFocus
               />
               <TextField
-                margin="normal"
+                margin='normal'
                 required
                 fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
+                name='password'
+                label='Password'
+                type='password'
+                id='password'
+                autoComplete='current-password'
               />
               <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
+                control={<Checkbox value='remember' color='primary' />}
+                label='Remember me'
               />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-              >
+              <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }}>
                 Sign In
               </Button>
-              <GoogleButton
-                // TODO GMAIL LOGIN onClick={() => {  }}
-                />
               <Grid container>
                 <Grid item xs>
-                  <Link href="/reset" variant="body2">
-                    Forgot password?
+                  <Link href='/signup' variant='body2'>
+                    {'No account? Sign Up!'}
                   </Link>
                 </Grid>
                 <Grid item>
-                  <Link href="/signup" variant="body2">
-                    {"Don't have an account? Sign Up"}
+                  <Link href='/reset' variant='body2'>
+                    Forgot password?
                   </Link>
                 </Grid>
               </Grid>
@@ -150,6 +142,4 @@ export default function Login() {
       </Grid>
     </ThemeProvider>
   );
-
-  
 }
