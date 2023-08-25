@@ -52,8 +52,27 @@ import { Scheduler, WeekView, Appointments } from '@devexpress/dx-react-schedule
 import TableCell from '@mui/material/TableCell';
 import { ViewState } from '@devexpress/dx-react-scheduler';
 
-const PORT = process.env.PORT || 8094;
+let saveTable = [];
+const dayNames = {
+  0: 'Sunday',
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday',
+};
+function timeArrayToString(timeArray) {
+  if (timeArray[0] == 12) {
+    return `${timeArray[0]}:${timeArray[1]} PM`;
+  } else if (timeArray[0] > 12) {
+    return `${timeArray[0] - 12}:${timeArray[1]} PM`;
+  } else {
+    return `${timeArray[0]}:${timeArray[1]} AM`;
+  }
+}
 
+const PORT = process.env.PORT || 8094;
 const modalStyle = {
   position: 'absolute',
   top: '50%',
@@ -128,6 +147,7 @@ function DashboardContent() {
     setOpenModal(tempModal);
   };
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [openSnackbar_, setOpenSnackbar_] = React.useState(false);
   const handleClickSnackBar = () => {
     setOpenSnackbar(true);
   };
@@ -136,6 +156,7 @@ function DashboardContent() {
       return;
     }
     setOpenSnackbar(false);
+    setOpenSnackbar_(false);
   };
   const action = (
     <React.Fragment>
@@ -177,7 +198,8 @@ function DashboardContent() {
           response = JSON.parse(cachedData);
           console.log('data from cache');
         } else {
-          response = await axios.get('https://tm.nucoders.dev/getAllCourseNames');
+          // response = await axios.get('https://tm.nucoders.dev/production/courseslist');
+          response = await axios.get('http://localhost:8091/production/courseslist');
           localStorage.setItem(
             'courseNames',
             JSON.stringify({
@@ -207,7 +229,7 @@ function DashboardContent() {
     setOpen(!open);
   };
   const addCourse = async () => {
-    let course = selectedCourse.split(' ')[0];
+    let course = selectedCourse.split(':')[0];
     let selectedCoursesTemp = [...addedCourses, course];
     let uniqeSelectedCoursesTemp = [...new Set(selectedCoursesTemp)];
     setAddedCourses(uniqeSelectedCoursesTemp);
@@ -237,46 +259,92 @@ function DashboardContent() {
     setFoundTables(true);
     setTables(null);
     console.log('using filters ' + useFilters);
+    // Done: replaced all day string with
     try {
       let response;
       let daysToGo = [];
       if (state.sunday) {
-        daysToGo.push('Sunday');
+        daysToGo.push(0);
       }
       if (state.monday) {
-        daysToGo.push('Monday');
+        daysToGo.push(1);
       }
       if (state.tuesday) {
-        daysToGo.push('Tuesday');
+        daysToGo.push(2);
       }
       if (state.wednesday) {
-        daysToGo.push('Wednesday');
+        daysToGo.push(3);
       }
       if (state.thursday) {
-        daysToGo.push('Thursday');
+        daysToGo.push(4);
       }
       if (state.friday) {
-        daysToGo.push('Friday');
+        daysToGo.push(5);
       }
       if (state.saturday) {
-        daysToGo.push('Saturday');
+        daysToGo.push(6);
       }
 
-      // response =  await axios.post('https://test.nucoders.dev:8096/createTableNoClashWeb',
-      response = await axios.post('https://tm.nucoders.dev/createTableNoClashWeb', {
-        id: addedCourses,
+      // TODO return url and body
+      // response = await axios.post('https://tm.nucoders.dev/createTableNoClashWeb', {
+      response = await axios.post('http://localhost:8091/production/createtable', {
+        coursesId: addedCourses,
         useFilters: useFilters,
         filters: {
           noDays: numberOfDays,
-          DaysToGo: daysToGo,
+          daysToGo: daysToGo,
+          startSlot: 1,
+          endSlot: 24,
         },
       });
+      // console.log(response.data);
       if (response.data.length == 0 || response.data == null) {
         console.log('no tables found');
         setFoundTables(false);
       }
-      console.log('data from server' + response.data);
-      setTables(response.data);
+      console.log('data from server');
+      ////
+      saveTable = response.data;
+      let displayTable = [];
+      for (const table of saveTable) {
+        let i = 0;
+        let courses = [];
+        for (const course of table) {
+          course.schedule.map((meeting) => {
+            meeting.courseId = course.courseId;
+            meeting.courseName = course.courseName;
+            meeting.courseType = course.courseType;
+            meeting.credits = course.credits;
+            meeting.section = course.sectionNumber + course.sectionLetter;
+            meeting.seatsLeft = course.seatsLeft;
+            meeting.id = i;
+            meeting.title = meeting.courseId;
+            meeting.startDate = new Date( // no change
+              2023,
+              0,
+              meeting.day + 1,
+              meeting.startTime[0],
+              meeting.startTime[1]
+            );
+            meeting.endDate = new Date(
+              2023,
+              0,
+              meeting.day + 1,
+              meeting.endTime[0],
+              meeting.endTime[1]
+            ); // no change
+            i++;
+            courses.push(meeting);
+          });
+        }
+        displayTable.push(courses);
+      }
+      console.log(saveTable);
+      setTables(displayTable);
+      // test[0][0].title = 'potato';
+      // console.log(test[0][0].title);
+      // setTables(test);
+      // setTables(response.data);
     } catch {
       console.log('error');
     } finally {
@@ -304,7 +372,6 @@ function DashboardContent() {
   const handleSwitch = (event) => {
     setSwitchState(event.target.checked);
     setUseFilters(event.target.checked);
-    console.log(useFilters);
   };
   useEffect(() => {}, [tables]);
 
@@ -327,10 +394,8 @@ function DashboardContent() {
           userId: userId,
           table: table,
         });
-        console.log('The data before stringify is ' + response.data._id);
         setShareLink(JSON.stringify(response.data).replace(/"/g, ''));
         setShowLinkField('visible');
-        console.log('data from server' + JSON.stringify(response.data));
       } catch {
         console.log('error');
       } finally {
@@ -488,147 +553,151 @@ function DashboardContent() {
                               Tables Found {tables.length}
                             </Typography>
                           )}
-                          {tables.map(
-                            (table, index) => (
-                              console.log(table),
-                              (
-                                <Paper sx={{ margin: 1, display: 'flex', flexDirection: 'column' }}>
-                                  <Scheduler data={table}>
-                                    {/* // remove the dates from this week */}
-                                    <ViewState
-                                      defaultCurrentDate={startDate}
-                                      defaultCurrentViewName='Week'
-                                    />
-                                    <WeekView
-                                      {...viewState}
-                                      startDayHour={6.5}
-                                      endDayHour={22}
-                                      excludedDays={[5, 6]}
-                                      cellDuration={120}
-                                      startDate={startDate}
-                                      endDate={endDate}
-                                    />
-                                    <Appointments />
-                                  </Scheduler>
-                                  {/* Button to view all details about this table */}
+                          {tables.map((table, index) => (
+                            <Paper sx={{ margin: 1, display: 'flex', flexDirection: 'column' }}>
+                              <Scheduler data={table}>
+                                {/* // remove the dates from this week */}
+                                <ViewState
+                                  defaultCurrentDate={startDate}
+                                  defaultCurrentViewName='Week'
+                                />
+                                <WeekView
+                                  {...viewState}
+                                  startDayHour={6.5}
+                                  endDayHour={22}
+                                  excludedDays={[]}
+                                  // excludedDays={[5, 6]}
+                                  cellDuration={120}
+                                  startDate={startDate}
+                                  endDate={endDate}
+                                />
+                                <Appointments />
+                              </Scheduler>
+                              {/* Button to view all details about this table */}
 
-                                  <Button
-                                    sx={{ backgroundColor: `#03045e`, m: 2 }}
-                                    variant='contained'
-                                    onClick={() => handleOpenModal(index, true)}
+                              <Button
+                                sx={{ backgroundColor: `#03045e`, m: 2 }}
+                                variant='contained'
+                                onClick={() => handleOpenModal(index, true)}
+                              >
+                                View Details
+                              </Button>
+                              <Modal
+                                open={openModal[index]}
+                                onClose={() => {
+                                  handleOpenModal(index);
+                                  setShowEmailField('hidden');
+                                  setShowLinkField('hidden');
+                                  setUserId(null);
+                                  setShareLink(null);
+                                }}
+                                aria-labelledby='modal-modal-title'
+                                aria-describedby='modal-modal-description'
+                              >
+                                <Box sx={modalStyle}>
+                                  <Typography
+                                    align='center'
+                                    id='modal-modal-title'
+                                    variant='h5'
+                                    component='h2'
                                   >
-                                    View Details
-                                  </Button>
-                                  <Modal
-                                    open={openModal[index]}
-                                    onClose={() => {
-                                      handleOpenModal(index);
-                                      setShowEmailField('hidden');
-                                      setShowLinkField('hidden');
-                                      setUserId(null);
-                                      setShareLink(null);
-                                    }}
-                                    aria-labelledby='modal-modal-title'
-                                    aria-describedby='modal-modal-description'
-                                  >
-                                    <Box sx={modalStyle}>
-                                      <Typography
-                                        align='center'
-                                        id='modal-modal-title'
-                                        variant='h5'
-                                        component='h2'
+                                    Table number {index + 1}
+                                  </Typography>
+                                  <Paper sx={{ m: 2 }}>
+                                    <List>
+                                      <Paper
+                                        elevation={0}
+                                        style={{ height: '40vmin', overflow: 'scroll' }}
                                       >
-                                        Table number {index + 1}
-                                      </Typography>
-                                      <Paper sx={{ m: 2 }}>
-                                        <List>
+                                        {saveTable[index].map((course) => (
                                           <Paper
-                                            elevation={0}
-                                            style={{ height: '40vmin', overflow: 'scroll' }}
+                                            sx={{
+                                              margin: 5,
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              backgroundColor: `#0077b6`,
+                                              color: '#FFF',
+                                            }}
                                           >
-                                            {table.map((course) => (
-                                              <Paper
-                                                sx={{
-                                                  margin: 5,
-                                                  display: 'flex',
-                                                  flexDirection: 'column',
-                                                  backgroundColor: `#0077b6`,
-                                                  color: '#FFF',
-                                                }}
-                                              >
+                                            <Typography variant='h6' align='center'>
+                                              {course.courseId + '-' + course.courseName}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              Section: {course.courseSection}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              Building: {course.location} Room: {course.courseRoom}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              Instructor: {course.instructors}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              Seats Left: {course.seatsLeft}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              {' '}
+                                              {course.courseType}{' '}
+                                            </Typography>
+                                            <Typography variant='h6' align='center'>
+                                              Schedule:
+                                            </Typography>
+                                            {course.schedule.map((meeting, index) => (
+                                              <>
                                                 <Typography variant='h6' align='center'>
-                                                  {course.title + '-' + course.courseName}
+                                                  {index + 1}- Day: {dayNames[meeting.day]}{' '}
+                                                  {timeArrayToString(meeting.startTime)} -{' '}
+                                                  {timeArrayToString(meeting.endTime)}
+                                                </Typography>
+                                                {/* <Typography variant='h6' align='center'>
+                                                  Start Time: {meeting.startTime}{' '}
                                                 </Typography>
                                                 <Typography variant='h6' align='center'>
-                                                  Section: {course.courseSection}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  Building: {course.location} Room:{' '}
-                                                  {course.courseRoom}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  Instructor: {course.instructor}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  Seats Left: {course.seatsLeft}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  {' '}
-                                                  {course.courseType}{' '}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  Day: {course.courseDay}{' '}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  Start Time: {course.courseStartTime}{' '}
-                                                </Typography>
-                                                <Typography variant='h6' align='center'>
-                                                  End Time: {course.courseEndTime}{' '}
-                                                </Typography>
-                                              </Paper>
+                                                  End Time: {meeting.endTime}{' '}
+                                                </Typography> */}
+                                              </>
                                             ))}
                                           </Paper>
-                                        </List>
+                                        ))}
                                       </Paper>
-                                      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                                        <Button
-                                          sx={{ backgroundColor: `#03045e` }}
-                                          variant='contained'
-                                          onClick={() => {
-                                            sendTable(table, userId);
-                                            setShowEmailField('visible');
-                                          }}
-                                        >
-                                          Share
-                                        </Button>
-                                        <TextField
-                                          sx={{ visibility: showEmailField, marginLeft: 2 }}
-                                          id='outlined-basic'
-                                          label='Email'
-                                          variant='outlined'
-                                          onChange={(event) => {
-                                            setUserId(event.target.value);
-                                          }}
-                                        />
-                                        <Typography
-                                          sx={{
-                                            color: '#000',
-                                            marginLeft: 2,
-                                            visibility: showLinkField,
-                                          }}
-                                          variant='h6'
-                                        >
-                                          Link: https://nucoders.dev/sharedTable/{shareLink}
-                                        </Typography>
-                                        {/* show link that is correct with this route format <Route exact path='/SharedTable/:userId' render={() => <h1>Shared Table</h1>} /> */}
-                                        {/* Link to this page SharedTable with the parameter userId */}
-                                      </Box>
-                                    </Box>
-                                  </Modal>
-                                </Paper>
-                              )
-                            )
-                          )}
+                                    </List>
+                                  </Paper>
+                                  <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                                    <Button
+                                      sx={{ backgroundColor: `#03045e` }}
+                                      variant='contained'
+                                      onClick={() => {
+                                        sendTable(table, userId);
+                                        setShowEmailField('visible');
+                                      }}
+                                    >
+                                      Share
+                                    </Button>
+                                    <TextField
+                                      sx={{ visibility: showEmailField, marginLeft: 2 }}
+                                      id='outlined-basic'
+                                      label='Email'
+                                      variant='outlined'
+                                      onChange={(event) => {
+                                        setUserId(event.target.value);
+                                      }}
+                                    />
+                                    <Typography
+                                      sx={{
+                                        color: '#000',
+                                        marginLeft: 2,
+                                        visibility: showLinkField,
+                                      }}
+                                      variant='h6'
+                                    >
+                                      Link: https://nucoders.dev/sharedTable/{shareLink}
+                                    </Typography>
+                                    {/* show link that is correct with this route format <Route exact path='/SharedTable/:userId' render={() => <h1>Shared Table</h1>} /> */}
+                                    {/* Link to this page SharedTable with the parameter userId */}
+                                  </Box>
+                                </Box>
+                              </Modal>
+                            </Paper>
+                          ))}
                         </Box>
                       )}
                       {!foundTables && (
@@ -637,7 +706,7 @@ function DashboardContent() {
                           No tables found!
                         </Typography>
                       )}
-                      {console.log(foundTables, loadingTables)}
+                      {/* {console.log(foundTables, loadingTables)} */}
                     </List>
                   </Paper>
                 </Paper>
@@ -773,6 +842,16 @@ function DashboardContent() {
                         }
                         label='Thursday'
                       />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={saturday}
+                            onChange={handleChangeCheckbox}
+                            name='saturday'
+                          />
+                        }
+                        label='Saturday'
+                      />
                     </FormGroup>
                   </FormControl>
                 </Paper>
@@ -785,11 +864,23 @@ function DashboardContent() {
                     backgroundColor: `#caf0f8`,
                   }}
                 >
+                  <Snackbar
+                    open={openSnackbar_}
+                    autoHideDuration={900}
+                    onClose={handleCloseSnackBar}
+                    message='At least add one course'
+                    action={action}
+                  />
                   <Button
                     sx={{ backgroundColor: `#0077b6` }}
                     variant='contained'
                     onClick={() => {
-                      getData();
+                      // Done show snakbar (At least add one course)
+                      if (addedCourses.length == 0) {
+                        setOpenSnackbar_(true);
+                      } else {
+                        getData();
+                      }
                     }}
                   >
                     Generate Tables
