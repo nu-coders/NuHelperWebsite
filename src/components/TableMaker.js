@@ -198,8 +198,8 @@ function DashboardContent() {
           response = JSON.parse(cachedData);
           console.log('data from cache');
         } else {
-          // response = await axios.get('https://tm.nucoders.dev/production/courseslist');
-          response = await axios.get('http://localhost:8091/production/courseslist');
+          response = await axios.get('https://tm.nucoders.dev/production/courseslist');
+          // response = await axios.get('http://localhost:8091/production/courseslist');
           localStorage.setItem(
             'courseNames',
             JSON.stringify({
@@ -286,8 +286,8 @@ function DashboardContent() {
       }
 
       // TODO return url and body
-      // response = await axios.post('https://tm.nucoders.dev/createTableNoClashWeb', {
-      response = await axios.post('http://localhost:8091/production/createtable', {
+      response = await axios.post('https://tm.nucoders.dev/production/createtable', {
+      // response = await axios.post('http://localhost:8091/production/createtable', {
         coursesId: addedCourses,
         useFilters: useFilters,
         filters: {
