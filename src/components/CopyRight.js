@@ -10,7 +10,7 @@ export default function Copyright(props) {
       {new Date().getFullYear()}
       {'.'}
       <br />
-      {'Version 1.0.4'}
+      {'Version 1.0.5'}
     </Typography>
   );
 }

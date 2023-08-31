@@ -294,7 +294,8 @@ function DashboardContent() {
           noDays: numberOfDays,
           daysToGo: daysToGo,
           startSlot: 1,
-          endSlot: 24,
+          backToback: backTobackState,
+          endSlot: 24
         },
       });
       // console.log(response.data);
@@ -323,15 +324,15 @@ function DashboardContent() {
               2023,
               0,
               meeting.day + 1,
-              meeting.startTime[0],
-              meeting.startTime[1]
+              meeting.startTimeList[0],
+              meeting.startTimeList[1]
             );
             meeting.endDate = new Date(
               2023,
               0,
               meeting.day + 1,
-              meeting.endTime[0],
-              meeting.endTime[1]
+              meeting.endTimeList[0],
+              meeting.endTimeList[1]
             ); // no change
             i++;
             courses.push(meeting);
@@ -360,7 +361,7 @@ function DashboardContent() {
     wednesday: true,
     thursday: true,
     friday: false,
-    saturday: false,
+    saturday: true,
   });
   const handleChangeCheckbox = (event) => {
     console.log(event.target.name + ' ' + event.target.checked);
@@ -369,9 +370,13 @@ function DashboardContent() {
   const { sunday, monday, tuesday, wednesday, thursday, friday, saturday } = state;
 
   const [switchState, setSwitchState] = React.useState(false);
+  const [backTobackState, setBackTobackState] = React.useState(false);
   const handleSwitch = (event) => {
     setSwitchState(event.target.checked);
     setUseFilters(event.target.checked);
+  };
+  const handleSwitchBack = (event) => {
+    setBackTobackState(event.target.checked);
   };
   useEffect(() => {}, [tables]);
 
@@ -645,8 +650,7 @@ function DashboardContent() {
                                               <>
                                                 <Typography variant='h6' align='center'>
                                                   {index + 1}- Day: {dayNames[meeting.day]}{' '}
-                                                  {timeArrayToString(meeting.startTime)} -{' '}
-                                                  {timeArrayToString(meeting.endTime)}
+                                                  {meeting.startTime} - {meeting.endTime}
                                                 </Typography>
                                                 {/* <Typography variant='h6' align='center'>
                                                   Start Time: {meeting.startTime}{' '}
@@ -853,6 +857,17 @@ function DashboardContent() {
                         label='Saturday'
                       />
                     </FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={backTobackState}
+                          onChange={handleSwitchBack}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                          color='secondary'
+                        />
+                      }
+                      label='backToback'
+                    />
                   </FormControl>
                 </Paper>
                 <Paper
